@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // RunCommand run command
@@ -89,47 +90,7 @@ func GetLinuxPath() string {
 	return ""
 }
 
-func main() {
-	var (
-		OS       string = runtime.GOOS
-		ChiaPath string
-		SpiltStr string = "\n"
-		Sleep    int    = 120
-	)
-	if len(os.Args) >= 2 {
-		s, _ := strconv.Atoi(os.Args[1])
-		if s < 0 {
-			Sleep = s
-		}
-	}
-	if OS == "linux" {
-		p := GetLinuxPath()
-		if len(p) > 0 {
-			ChiaPath = p
-		} else {
-			if len(os.Args) >= 3 {
-				ChiaPath = os.Args[2]
-			} else {
-				fmt.Println("请将chia运行目录填入第三个参数")
-				os.Exit(0)
-			}
-		}
-	}
-	fmt.Println(Sleep)
-	if OS == "windows" {
-		SpiltStr = "\r\n"
-		homedir, err := GetUserInfo()
-		if err != nil {
-			fmt.Println("获取用户目录失败")
-			os.Exit(0)
-		}
-		ChiaPath = strings.Join([]string{homedir, `AppData\Local\chia-blockchain`}, `\`)
-	}
-	if !IsDir(ChiaPath) {
-		fmt.Println("获取Chia运行目录失败")
-		os.Exit(0)
-	}
-
+func Check(OS, ChiaPath, SpiltStr string) {
 	command := strings.Join([]string{ChiaPath, "chia show -c"}, "")
 	f, _ := RunCommand(OS, command)
 	list := strings.Split(f, SpiltStr)
@@ -186,4 +147,58 @@ func main() {
 			}
 		}
 	}
+}
+
+func main() {
+	var (
+		OS       string = runtime.GOOS
+		ChiaPath string
+		SpiltStr string = "\n"
+		Sleep    int    = 120
+	)
+	if len(os.Args) >= 2 {
+		s, _ := strconv.Atoi(os.Args[1])
+		if s < 0 {
+			Sleep = s
+		}
+	}
+	if OS == "linux" {
+		p := GetLinuxPath()
+		if len(p) > 0 {
+			ChiaPath = p
+		} else {
+			if len(os.Args) >= 3 {
+				ChiaPath = os.Args[2]
+			} else {
+				time.Sleep(time.Duration(10) * time.Second)
+				fmt.Println("请将chia运行目录填入第三个参数")
+				os.Exit(0)
+			}
+		}
+	}
+	if OS == "windows" {
+		SpiltStr = "\r\n"
+		homedir, err := GetUserInfo()
+		if err != nil {
+			time.Sleep(time.Duration(10) * time.Second)
+			fmt.Println("获取用户目录失败")
+			os.Exit(0)
+		}
+		ChiaPath = strings.Join([]string{homedir, `AppData\Local\chia-blockchain`}, `\`)
+	}
+	if !IsDir(ChiaPath) {
+		fmt.Println("获取Chia运行目录失败")
+		time.Sleep(time.Duration(10) * time.Second)
+		os.Exit(0)
+	}
+	var ch chan int
+	ticker := time.NewTicker(time.Second * time.Duration(Sleep))
+	go func() {
+		for range ticker.C {
+			Check(OS, ChiaPath, SpiltStr)
+		}
+		ch <- 1
+	}()
+	<-ch
+
 }
