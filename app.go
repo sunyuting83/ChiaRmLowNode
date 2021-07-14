@@ -77,16 +77,47 @@ func GetUserInfo() (homedir string, err error) {
 	return u.HomeDir, nil
 }
 
+func GetLinuxPath() string {
+	cmd := exec.Command("uname", "-a")
+	stdout, _ := cmd.StdoutPipe()
+	defer stdout.Close()
+	cmd.Start()
+	opBytes, _ := ioutil.ReadAll(stdout)
+	if strings.Contains(string(opBytes), "Ubuntu") || strings.Contains(string(opBytes), "Debain") {
+		return "/lib/chia-blockchain/resources/app.asar.unpacked/daemon/"
+	}
+	return ""
+}
+
 func main() {
 	var (
 		OS       string = runtime.GOOS
 		ChiaPath string
 		SpiltStr string = "\n"
+		Sleep    int    = 120
 	)
-	if runtime.GOOS == "windows" {
-		SpiltStr = "\r\n"
+	if len(os.Args) >= 2 {
+		s, _ := strconv.Atoi(os.Args[1])
+		if s < 0 {
+			Sleep = s
+		}
 	}
+	if OS == "linux" {
+		p := GetLinuxPath()
+		if len(p) > 0 {
+			ChiaPath = p
+		} else {
+			if len(os.Args) >= 2 {
+				ChiaPath = os.Args[2]
+			} else {
+				fmt.Println("请将chia运行目录填入第三个参数")
+				os.Exit(0)
+			}
+		}
+	}
+	fmt.Println(Sleep)
 	if OS == "windows" {
+		SpiltStr = "\r\n"
 		homedir, err := GetUserInfo()
 		if err != nil {
 			fmt.Println("获取用户目录失败")
@@ -98,7 +129,7 @@ func main() {
 		fmt.Println("获取Chia运行目录失败")
 		os.Exit(0)
 	}
-	ChiaPath = "/lib/chia-blockchain/resources/app.asar.unpacked/daemon/"
+
 	command := strings.Join([]string{ChiaPath, "chia show -c"}, "")
 	f, _ := RunCommand(OS, command)
 	list := strings.Split(f, SpiltStr)
