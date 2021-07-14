@@ -107,7 +107,7 @@ func main() {
 		if len(p) > 0 {
 			ChiaPath = p
 		} else {
-			if len(os.Args) >= 2 {
+			if len(os.Args) >= 3 {
 				ChiaPath = os.Args[2]
 			} else {
 				fmt.Println("请将chia运行目录填入第三个参数")
