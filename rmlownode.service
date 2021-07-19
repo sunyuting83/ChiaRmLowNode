@@ -7,7 +7,7 @@ User=testuseruzuzuz
 Group=testuseruzuzuz
 
 Type=forking
-ExecStart=testpath/rmlownode
+ExecStart=testpath/start.sh
 ExecStop=/bin/kill -s QUIT $MAINPID
 PrivateTmp=true
  
