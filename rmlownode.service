@@ -1,0 +1,15 @@
+[Unit]
+Description=chia remove low node
+After=network.target
+ 
+[Service]
+User=testuseruzuzuz
+Group=testuseruzuzuz
+
+Type=forking
+ExecStart=testpath/rmlownode
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+ 
+[Install]
+WantedBy=multi-user.target
