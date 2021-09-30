@@ -141,18 +141,18 @@ func Check(OS, ChiaPath, SpiltStr string) {
 					commanda := strings.Join([]string{ChiaPath, co}, "")
 					RunCommand(OS, commanda)
 					fmt.Println(strings.Join([]string{"Remove nodeID", nodeID}, "-"))
-					return
 				}
 			} else {
-				if !strings.HasPrefix(v, "127.0.0.1") {
-					c := strings.Index(v, "...")
-					d := c - 8
-					nodeID := v[d:c]
-					co := strings.Join([]string{"chia show -r", nodeID}, " ")
-					commanda := strings.Join([]string{ChiaPath, co}, "")
-					RunCommand(OS, commanda)
-					fmt.Println(strings.Join([]string{"Remove nodeID", nodeID}, "-"))
-					return
+				if strings.HasPrefix(v, "FARMER") || strings.HasPrefix(v, "WALLET") {
+					if !strings.Contains(v, "127.0.0.1") {
+						c := strings.Index(v, "...")
+						d := c - 8
+						nodeID := v[d:c]
+						co := strings.Join([]string{"chia show -r", nodeID}, " ")
+						commanda := strings.Join([]string{ChiaPath, co}, "")
+						RunCommand(OS, commanda)
+						fmt.Println(strings.Join([]string{"Remove nodeID", nodeID}, "-"))
+					}
 				}
 			}
 		}
