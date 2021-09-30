@@ -125,24 +125,34 @@ func Check(OS, ChiaPath, SpiltStr string) {
 	}
 
 	for i, v := range list {
-		if i >= 2 {
-			if len(v) > 0 {
-				if strings.HasPrefix(v, "FULL_NODE") {
-					height := list[i+1]
-					height = strings.Replace(height, " ", "", -1)
-					a := strings.Index(height, "Height:") + 7
-					b := strings.Index(height, "-Has")
-					height = height[a:b]
-					intHeight, _ := strconv.Atoi(height)
-					if intHeight < intN {
-						c := strings.Index(v, "...")
-						d := c - 8
-						nodeID := v[d:c]
-						co := strings.Join([]string{"chia show -r", nodeID}, " ")
-						commanda := strings.Join([]string{ChiaPath, co}, "")
-						RunCommand(OS, commanda)
-						return
-					}
+		if len(v) > 0 {
+			if strings.HasPrefix(v, "FULL_NODE") {
+				height := list[i+1]
+				height = strings.Replace(height, " ", "", -1)
+				a := strings.Index(height, "Height:") + 7
+				b := strings.Index(height, "-Has")
+				height = height[a:b]
+				intHeight, _ := strconv.Atoi(height)
+				if intHeight < intN {
+					c := strings.Index(v, "...")
+					d := c - 8
+					nodeID := v[d:c]
+					co := strings.Join([]string{"chia show -r", nodeID}, " ")
+					commanda := strings.Join([]string{ChiaPath, co}, "")
+					RunCommand(OS, commanda)
+					fmt.Println(strings.Join([]string{"Remove nodeID", nodeID}, "-"))
+					return
+				}
+			} else {
+				if !strings.HasPrefix(v, "127.0.0.1") {
+					c := strings.Index(v, "...")
+					d := c - 8
+					nodeID := v[d:c]
+					co := strings.Join([]string{"chia show -r", nodeID}, " ")
+					commanda := strings.Join([]string{ChiaPath, co}, "")
+					RunCommand(OS, commanda)
+					fmt.Println(strings.Join([]string{"Remove nodeID", nodeID}, "-"))
+					return
 				}
 			}
 		}
@@ -184,7 +194,20 @@ func main() {
 			fmt.Println("获取用户目录失败")
 			os.Exit(0)
 		}
-		ChiaPath = strings.Join([]string{homedir, `AppData\Local\chia-blockchain`}, `\`)
+		rootPath := strings.Join([]string{homedir, `AppData\Local\chia-blockchain`}, `\`)
+		files, _ := ioutil.ReadDir(rootPath)
+		var versionNumber []string
+		for _, f := range files {
+			if strings.Contains(f.Name(), "app-") {
+				versionNumber = append(versionNumber, string(f.Name()))
+			}
+		}
+		ChiaPath = strings.Join([]string{rootPath, versionNumber[0], `resources\app.asar.unpacked\daemon`}, `\`)
+		if len(versionNumber) > 1 {
+			n := len(versionNumber) - 1
+			ChiaPath = strings.Join([]string{rootPath, versionNumber[n], `resources\app.asar.unpacked\daemon`}, `\`)
+		}
+		ChiaPath = strings.Join([]string{ChiaPath, `\`}, "")
 	}
 	if !IsDir(ChiaPath) {
 		fmt.Println("获取Chia运行目录失败")
