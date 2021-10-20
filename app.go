@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,43 +20,8 @@ func RunCommand(OS, command string) (k string, err error) {
 	} else {
 		cmd = exec.Command("/bin/sh", "-c", command)
 	}
-
-	stdout, err := cmd.StdoutPipe()
+	bytes, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	if err := cmd.Start(); err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	bytesErr, err := ioutil.ReadAll(stderr)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	if len(bytesErr) != 0 {
-		return "", errors.New("0")
-
-	}
-
-	bytes, err := ioutil.ReadAll(stdout)
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-
-	if err := cmd.Wait(); err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 	return string(bytes), nil
@@ -93,10 +57,12 @@ func GetLinuxPath() string {
 func Check(OS, ChiaPath, SpiltStr string) {
 	command := strings.Join([]string{ChiaPath, "chia show -c"}, "")
 	f, _ := RunCommand(OS, command)
+
 	list := strings.Split(f, SpiltStr)
 
 	commanda := strings.Join([]string{ChiaPath, "chia show -s"}, "")
 	h, _ := RunCommand(OS, commanda)
+
 	hlist := strings.Split(h, SpiltStr)
 	var (
 		intN int
@@ -123,7 +89,6 @@ func Check(OS, ChiaPath, SpiltStr string) {
 			intN = intHeight - intA
 		}
 	}
-
 	for i, v := range list {
 		if len(v) > 0 {
 			if strings.HasPrefix(v, "FULL_NODE") {
